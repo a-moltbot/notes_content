@@ -28,3 +28,5 @@ Create a fine-grained PAT and add it as a repo secret:
 Also set (either as repo Variables or edit the workflow file):
 - `NOTES_HUGO_REPO` (default: `Zilong-L/notes_clawd`)
 
+
+<!-- trigger: 2026-01-26T16:22:53Z -->
