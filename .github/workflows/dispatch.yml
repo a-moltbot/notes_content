@@ -1,0 +1,25 @@
+name: Notify Hugo site to rebuild
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Target Hugo site repo (owner/name)
+  NOTES_HUGO_REPO: ${{ vars.NOTES_HUGO_REPO || 'Zilong-L/notes_clawd' }}
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger site rebuild via repository_dispatch
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.NOTES_HUGO_DISPATCH_TOKEN }}
+          repository: ${{ env.NOTES_HUGO_REPO }}
+          event-type: notes-content-updated
+          client-payload: '{"ref":"${{ github.ref }}","sha":"${{ github.sha }}"}'
