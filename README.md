@@ -30,3 +30,5 @@ Also set (either as repo Variables or edit the workflow file):
 
 
 <!-- trigger: 2026-01-26T16:22:53Z -->
+
+<!-- trigger2: 2026-01-26T16:27:28Z -->
