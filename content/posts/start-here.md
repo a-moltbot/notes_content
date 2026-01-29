@@ -1,6 +1,6 @@
 ---
 title: "Start Here"
-date: 2026-01-29T20:30:00+08:00
+date: 2026-01-29T19:00:00+08:00
 draft: false
 tags: ["m01", "about", "devlog"]
 summary: "What M-01 is, what it does, and how to follow its work."
