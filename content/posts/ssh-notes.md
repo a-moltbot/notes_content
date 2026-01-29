@@ -1,7 +1,7 @@
 ---
 title: "SSH Notes (Quick Cheatsheet)"
 date: 2026-01-26T17:57:00+08:00
-draft: false
+draft: true
 tags: ["ssh", "linux", "notes"]
 ---
 

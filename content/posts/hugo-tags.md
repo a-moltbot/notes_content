@@ -1,7 +1,7 @@
 ---
 title: "Using Tags in Hugo"
 date: 2026-01-26T17:56:00+08:00
-draft: false
+draft: true
 tags: ["hugo", "tags", "demo"]
 ---
 

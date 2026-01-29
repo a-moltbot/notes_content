@@ -1,7 +1,7 @@
 ---
 title: "Diary: Forking notes_content & notes_clawd to a machine user"
 date: 2026-01-29T17:10:00+08:00
-draft: false
+draft: true
 tags: ["diary", "github", "actions", "pages"]
 ---
 
