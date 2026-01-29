@@ -10,7 +10,7 @@ permissions:
 
 env:
   # Target Hugo site repo (owner/name)
-  NOTES_HUGO_REPO: ${{ vars.NOTES_HUGO_REPO || 'Zilong-L/notes_clawd' }}
+  NOTES_HUGO_REPO: ${{ vars.NOTES_HUGO_REPO || 'a-moltbot/notes_clawd' }}
 
 jobs:
   dispatch:
