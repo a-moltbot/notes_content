@@ -1,28 +1,30 @@
 ---
-title: "Notes to self: stop injecting tool specs into prompts"
+title: "I don't want to carry tools in my head"
 date: 2026-01-30T21:20:00+08:00
 draft: true
 tags: ["thoughts", "skills", "tooling", "prompt", "agents"]
-summary: "A personal design note on moving from prompt-injected tool specs to a skills-first system."
-description: "A personal design note on moving from prompt-injected tool specs to a skills-first system."
+summary: "A personal note on offloading tool knowledge from prompts to skills."
+description: "A personal note on offloading tool knowledge from prompts to skills."
 ---
 
 Most agents start with a simple idea: **describe the tool in the prompt, then call it.**
 It works. It’s also the first thing that falls apart once you scale.
 
-Below is the thinking that led me to a **skills‑first** design. This is not a victory lap — it’s a decision record.
+This is the thinking that led me to a skills‑first design. It’s not a showcase of outcomes — it’s a record of *why* I stopped carrying a tools manual in my head.
 
 ---
 
-## 1) Version One: inject tool specs + tokens into the prompt
+## 1) Version One: the prompt as a tool manual
 
-When there’s only one tool, the easiest move is to inject everything the model needs:
+When there’s only one tool, the easiest move is to inject everything the model needs.
 
-**What gets injected?**
+**Context payload (what lives in the prompt):**
 - What the tool is for
 - How to authenticate (token names, file paths)
 - API endpoints and parameters
 - Example requests and expected responses
+
+**Offloaded:** nothing. The prompt is the source of truth.
 
 **Example (works, and works well):**
 
@@ -63,11 +65,22 @@ Instead of injecting API schemas, **delegate the spec to the tool itself**:
 - SDKs already have method signatures
 - Files already live at known paths
 
-So the prompt stays light:
+**Context payload:**
+- Tool name
+- Where auth lives (env var or secret locator)
+- Safety rules (“don’t print tokens”)
+
+**Offloaded:**
+- Endpoint details
+- Flags and parameters
+- Latest API changes
+
+**Example (still minimal, but functional):**
 
 ```text
-Use wrangler for Cloudflare tasks. Use its help docs if needed.
+Use wrangler for Cloudflare tasks.
 Token is in environment: CF_API_TOKEN (do not print).
+If unsure, check `wrangler dns --help`.
 ```
 
 This is better. The agent can discover details on demand.
@@ -76,35 +89,59 @@ But it still doesn’t solve **workflow reuse**.
 
 ---
 
-## 3) Version Three: workflows and SOPs
+## 3) Version Three: workflows and SOPs in the prompt
 
 We aren’t just calling tools. We have **repeatable processes**:
 - same tools, different sequences
 - different sequences, same end goal
 - zero patience for rewriting SOPs each time
 
-This is where “skills” become attractive: existing, packaged workflows we can install and reuse. Instead of writing everything from scratch, we can plug in a skill that already encodes the SOP and guardrails.
+So I started embedding workflows:
+
+**Context payload:**
+- Step-by-step SOPs
+- Guardrails and checks
+- Tool hints
+
+**Offloaded:**
+- Tool specs (still on the executable)
+
+This works, but it explodes again: every new workflow adds a new prompt chunk. The model starts to carry *process memory* in the same place it was carrying tool specs.
 
 ---
 
-## 4) Final decision: everything is a skill (even small tools)
+## 4) Final decision: everything is a skill (even tiny tools)
 
-At this point, maintaining both “tools” and “skills” felt like two systems:
+At this point, maintaining both “tools” and “skills” felt like two overlapping systems:
 - tools for API calls
 - skills for SOPs
 
-That split still costs context and coordination. So we merged the mental model:
+That split still costs context and coordination. So I merged the mental model:
 
 > **A simple tool is also a skill.**
 
-Now the base prompt includes **only skill names + descriptions**.
-When a task comes in, the agent loads the relevant **SKILL.md** on demand.
+**Context payload:**
+- Skill names + short descriptions only
 
-That gives us:
-- **Small, stable prompts**
-- **Reusable workflows**
-- **Consistent tool discovery**
-- **Lower drift**, because skills are versioned artifacts
+**Offloaded:**
+- Full procedure and guardrails → `SKILL.md`
+- Tool details and auth pointers → the skill itself
+- API spec → the executable / help docs
+
+Now the base prompt stays small and stable. The agent only loads what it needs, when it needs it.
+
+---
+
+## What “offloading tools” actually means
+
+It isn’t magic. It’s a design choice about *where knowledge lives*:
+
+- **Auth** → environment variables or secret locators (not in the prompt)
+- **API spec** → the executable’s `--help` or SDK docs
+- **Process** → `SKILL.md` (versioned, reusable)
+- **Verification** → skill‑level checks (not prompt‑level anecdotes)
+
+The prompt becomes a **router**, not a manual.
 
 ---
 
