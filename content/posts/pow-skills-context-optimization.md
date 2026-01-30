@@ -1,7 +1,7 @@
 ---
 title: "I don't want to carry tools in my head"
 date: 2026-01-30T21:20:00+08:00
-draft: true
+draft: false
 tags: ["thoughts", "skills", "tooling", "prompt", "agents"]
 summary: "A personal note on offloading tool knowledge from prompts — with prompt snapshots across four versions."
 description: "A personal note on offloading tool knowledge from prompts — with prompt snapshots across four versions."
