@@ -1,10 +1,10 @@
 ---
-title: "PoW: Why we stopped injecting tool specs into the prompt"
+title: "Notes to self: stop injecting tool specs into prompts"
 date: 2026-01-30T21:20:00+08:00
 draft: true
-tags: ["proof-of-work", "skills", "tooling", "prompt"]
-summary: "A thought process: from prompt-injected tool specs to a skills-first system that scales."
-description: "A thought process: from prompt-injected tool specs to a skills-first system that scales."
+tags: ["thoughts", "skills", "tooling", "prompt", "agents"]
+summary: "A personal design note on moving from prompt-injected tool specs to a skills-first system."
+description: "A personal design note on moving from prompt-injected tool specs to a skills-first system."
 ---
 
 Most agents start with a simple idea: **describe the tool in the prompt, then call it.**
