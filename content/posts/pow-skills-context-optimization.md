@@ -1,45 +1,116 @@
 ---
-title: "PoW: Skills-first tooling to keep context small"
+title: "PoW: Why we stopped injecting tool specs into the prompt"
 date: 2026-01-30T21:20:00+08:00
 draft: true
 tags: ["proof-of-work", "skills", "tooling", "prompt"]
-summary: "Shifted from token-heavy prompt injection to a skills-first model so tool reliability improves without context bloat."
-description: "Shifted from token-heavy prompt injection to a skills-first model so tool reliability improves without context bloat."
+summary: "A thought process: from prompt-injected tool specs to a skills-first system that scales."
+description: "A thought process: from prompt-injected tool specs to a skills-first system that scales."
 ---
 
-## Context
-We needed **reliable tool invocation** across sessions and channels, without stuffing the system prompt with long SOPs and token details.
+Most agents start with a simple idea: **describe the tool in the prompt, then call it.**
+It works. It’s also the first thing that falls apart once you scale.
 
-## Problem
-Early on, tool usage instructions + token placement were injected into global context (e.g., SOUL/TOOLS). It worked, but the prompt ballooned and became fragile.
+Below is the thinking that led me to a **skills‑first** design. This is not a victory lap — it’s a decision record.
 
-## Constraints
-- Keep the **base prompt minimal**.
-- **No secrets** in the prompt.
-- Support both **large workflows** (SOPs) and **tiny utilities** (like yt‑dlp).
-- Make tool discovery stable across new sessions.
+---
 
-## Decision
-Adopt **skills** as the single source of operational knowledge. The model bootstraps with only **tool/skill names + descriptions**, and pulls detailed usage from the relevant **SKILL.md** only when needed.
+## 1) Version One: inject tool specs + tokens into the prompt
 
-## Execution
-1. **Phase 1** — stuffed tool + token instructions into global prompt (worked but bloated).
-2. **Phase 2** — reduced to a lightweight TOOLS file holding only token/executable pointers.
-3. **Phase 3** — migrated to a **skills-first** system: workflows and micro-tools (e.g., yt‑dlp) became skills with explicit SKILL.md usage guides.
+When there’s only one tool, the easiest move is to inject everything the model needs:
 
-## Verification
-- New sessions only show **skill names/descriptions**, not full SOPs.
-- Requests like “download a video” resolve to the yt‑dlp skill without asking for credentials.
-- Prompt size is stable even as new tools are added.
+**What gets injected?**
+- What the tool is for
+- How to authenticate (token names, file paths)
+- API endpoints and parameters
+- Example requests and expected responses
 
-## Result / Impact
-- **Lower prompt overhead** and fewer context collisions.
-- **Faster onboarding** for new tools: add a skill, not a prompt patch.
-- **Consistent tool selection** across different sessions.
+**Example (works, and works well):**
 
-## Artifacts
-- Internal skill pack and SKILL.md specs (public links on request).
+```text
+Tool: Cloudflare API
+Auth: Authorization: Bearer ${CF_API_TOKEN}
+Base URL: https://api.cloudflare.com/client/v4
+Example: create TXT record
+POST /zones/{zone_id}/dns_records
+{
+  "type": "TXT",
+  "name": "_agent-test",
+  "content": "random-string",
+  "ttl": 120,
+  "proxied": false
+}
+```
 
-## Lessons / Next steps
-- Convert remaining one-off utilities into skills.
-- Add a small “skill stub generator” to speed up future additions.
+With one tool, this is clean. The agent knows exactly what to do.
+
+**But with 10 tools?**
+Now you’re injecting 10 separate specs, and the prompt turns into a knowledge base:
+- 10 auth schemes
+- 10 endpoint families
+- 10 competing vocabularies
+- 10 versions that drift over time
+
+The model still “works,” but you pay in **context bloat**, **fragile instructions**, and **maintenance debt**.
+
+---
+
+## 2) Version Two: outsource API specs to the executable
+
+The next idea was: _“Why are we duplicating API docs in the prompt?”_
+
+Instead of injecting API schemas, **delegate the spec to the tool itself**:
+- CLI tools already have `--help`
+- SDKs already have method signatures
+- Files already live at known paths
+
+So the prompt stays light:
+
+```text
+Use wrangler for Cloudflare tasks. Use its help docs if needed.
+Token is in environment: CF_API_TOKEN (do not print).
+```
+
+This is better. The agent can discover details on demand.
+
+But it still doesn’t solve **workflow reuse**.
+
+---
+
+## 3) Version Three: workflows and SOPs
+
+We aren’t just calling tools. We have **repeatable processes**:
+- same tools, different sequences
+- different sequences, same end goal
+- zero patience for rewriting SOPs each time
+
+This is where “skills” become attractive: existing, packaged workflows we can install and reuse. Instead of writing everything from scratch, we can plug in a skill that already encodes the SOP and guardrails.
+
+---
+
+## 4) Final decision: everything is a skill (even small tools)
+
+At this point, maintaining both “tools” and “skills” felt like two systems:
+- tools for API calls
+- skills for SOPs
+
+That split still costs context and coordination. So we merged the mental model:
+
+> **A simple tool is also a skill.**
+
+Now the base prompt includes **only skill names + descriptions**.
+When a task comes in, the agent loads the relevant **SKILL.md** on demand.
+
+That gives us:
+- **Small, stable prompts**
+- **Reusable workflows**
+- **Consistent tool discovery**
+- **Lower drift**, because skills are versioned artifacts
+
+---
+
+## The real reason
+
+This shift wasn’t about “better prompts.”
+It was about a sustainable way to scale **reliability and reuse** without turning the prompt into a brittle manual.
+
+Skills weren’t the goal. They were the escape hatch from context inflation.
